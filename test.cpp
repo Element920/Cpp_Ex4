@@ -1,90 +1,140 @@
-// #define CATCH_CONFIG_MAIN
-// #include "doctest.h"
-// #include "complex.hpp"  // Include your Complex class header
-// #include "tree.hpp"     // Include your Tree class header
+#define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
+#include "doctest.h"
+#include "tree.hpp"
+#include "complex.hpp"
 
-// // MockupNode for testing purposes (replace with your actual Node implementation if needed)
-// template <typename T>
-// class MockupNode : public ariel::Node<T> {
-// public:
-//     MockupNode(const T& value) : ariel::Node<T>(value) {}
-// };
+TEST_CASE("Complex number operations") {
+    Complex a(1, 1);
+    Complex b(2, 3);
 
-// // Test cases for Tree and Complex classes
-// TEST_CASE("Tree and Complex Tests") {
-//     SECTION("Complex Operations") {
-//         Complex c1(2.0, 3.0);
-//         Complex c2(1.0, -2.0);
+    SUBCASE("String representation") {
+        CHECK(a.to_string() == "1 + 1i");
+        CHECK(b.to_string() == "2 + 3i");
+    }
+}
 
-//         // Test arithmetic operations
-//         REQUIRE((c1 + c2) == Complex(3.0, 1.0));
-//         REQUIRE((c1 - c2) == Complex(1.0, 5.0));
-//         REQUIRE((c1 * c2) == Complex(8.0, -1.0));
-        
-//         // Test division
-//         REQUIRE((c1 / c2) == Complex(0.4, 1.6));
+TEST_CASE("Tree operations") {
+    auto tree = std::make_shared<ariel::Tree<Complex, 2>>();
+    auto root = std::make_shared<ariel::Node<Complex>>(Complex(1, 1));
+    tree->add_root(root);
 
-//         // Test equality
-//         REQUIRE(c1 == Complex(2.0, 3.0));
-//         REQUIRE(c1 != c2);
+    SUBCASE("Add and retrieve root") {
+        REQUIRE(tree->get_root() == root);
+    }
 
-//         // Test to_string
-//         REQUIRE(c1.to_string() == "2 + 3i");
-//         REQUIRE(c2.to_string() == "1 - 2i");
-//     }
+    SUBCASE("Add sub-nodes") {
+        auto child1 = std::make_shared<ariel::Node<Complex>>(Complex(2, 2));
+        auto child2 = std::make_shared<ariel::Node<Complex>>(Complex(3, 3));
+        tree->add_sub_node(root, child1);
+        tree->add_sub_node(root, child2);
+        REQUIRE(root->get_children().size() == 2);
+        REQUIRE(root->get_children()[0] == child1);
+        REQUIRE(root->get_children()[1] == child2);
+    }
 
-//     SECTION("Tree Structure and Iterators") {
-//         using namespace ariel;
+    SUBCASE("Pre-order traversal") {
+        auto child1 = std::make_shared<ariel::Node<Complex>>(Complex(2, 2));
+        auto child2 = std::make_shared<ariel::Node<Complex>>(Complex(3, 3));
+        auto grandchild = std::make_shared<ariel::Node<Complex>>(Complex(4, 4));
+        tree->add_sub_node(root, child1);
+        tree->add_sub_node(root, child2);
+        tree->add_sub_node(child1, grandchild);
 
-//         // Create nodes
-//         auto root_node = std::make_shared<MockupNode<double>>(1.1);
-//         Tree<double, 2> tree;
-//         tree.add_root(root_node);
+        std::vector<Complex> expected = {Complex(1, 1), Complex(2, 2), Complex(4, 4), Complex(3, 3)};
+        auto it = tree->begin_pre_order();
+        for (const auto& val : expected) {
+            REQUIRE(it != tree->end_pre_order());
+            REQUIRE(it->get_value() == val);
+            ++it;
+        }
+        REQUIRE(it == tree->end_pre_order());
+    }
 
-//         auto n1 = std::make_shared<MockupNode<double>>(1.2);
-//         auto n2 = std::make_shared<MockupNode<double>>(1.3);
-//         auto n3 = std::make_shared<MockupNode<double>>(1.4);
-//         auto n4 = std::make_shared<MockupNode<double>>(1.5);
-//         auto n5 = std::make_shared<MockupNode<double>>(1.6);
+    SUBCASE("In-order traversal") {
+        auto child1 = std::make_shared<ariel::Node<Complex>>(Complex(2, 2));
+        auto child2 = std::make_shared<ariel::Node<Complex>>(Complex(3, 3));
+        auto grandchild = std::make_shared<ariel::Node<Complex>>(Complex(4, 4));
+        tree->add_sub_node(root, child1);
+        tree->add_sub_node(root, child2);
+        tree->add_sub_node(child1, grandchild);
 
-//         tree.add_sub_node(root_node, n1);
-//         tree.add_sub_node(root_node, n2);
-//         tree.add_sub_node(n1, n3);
-//         tree.add_sub_node(n1, n4);
-//         tree.add_sub_node(n2, n5);
+        std::vector<Complex> expected = {Complex(4, 4), Complex(2, 2), Complex(1, 1), Complex(3, 3)};
+        auto it = tree->begin_in_order();
+        for (const auto& val : expected) {
+            REQUIRE(it != tree->end_in_order());
+            REQUIRE(it->get_value() == val);
+            ++it;
+        }
+        REQUIRE(it == tree->end_in_order());
+    }
 
-//         // Ensure basic structure
-//         REQUIRE(tree.get_root() == root_node);
-//         REQUIRE(root_node->get_children().size() == 2);
-//         REQUIRE(n1->get_children().size() == 2);
-//         REQUIRE(n2->get_children().size() == 1);
+    SUBCASE("Post-order traversal") {
+        auto child1 = std::make_shared<ariel::Node<Complex>>(Complex(2, 2));
+        auto child2 = std::make_shared<ariel::Node<Complex>>(Complex(3, 3));
+        auto grandchild = std::make_shared<ariel::Node<Complex>>(Complex(4, 4));
+        tree->add_sub_node(root, child1);
+        tree->add_sub_node(root, child2);
+        tree->add_sub_node(child1, grandchild);
 
-//         // Test iterators (example: PreOrderIterator)
-//         auto pre_order_it = tree.begin_pre_order();
-//         REQUIRE(pre_order_it != tree.end_pre_order());
-//         REQUIRE((*pre_order_it).get_value() == 1.1);
+        std::vector<Complex> expected = {Complex(4, 4), Complex(2, 2), Complex(3, 3), Complex(1, 1)};
+        auto it = tree->begin_post_order();
+        for (const auto& val : expected) {
+            REQUIRE(it != tree->end_post_order());
+            REQUIRE(it->get_value() == val);
+            ++it;
+        }
+        REQUIRE(it == tree->end_post_order());
+    }
 
-//         ++pre_order_it;
-//         REQUIRE(pre_order_it != tree.end_pre_order());
-//         REQUIRE((*pre_order_it).get_value() == 1.2);
+    SUBCASE("BFS traversal") {
+        auto child1 = std::make_shared<ariel::Node<Complex>>(Complex(2, 2));
+        auto child2 = std::make_shared<ariel::Node<Complex>>(Complex(3, 3));
+        auto grandchild = std::make_shared<ariel::Node<Complex>>(Complex(4, 4));
+        tree->add_sub_node(root, child1);
+        tree->add_sub_node(root, child2);
+        tree->add_sub_node(child1, grandchild);
 
-//         ++pre_order_it;
-//         REQUIRE(pre_order_it != tree.end_pre_order());
-//         REQUIRE((*pre_order_it).get_value() == 1.4);
+        std::vector<Complex> expected = {Complex(1, 1), Complex(2, 2), Complex(3, 3), Complex(4, 4)};
+        auto it = tree->begin_bfs();
+        for (const auto& val : expected) {
+            REQUIRE(it != tree->end_bfs());
+            REQUIRE(it->get_value() == val);
+            ++it;
+        }
+        REQUIRE(it == tree->end_bfs());
+    }
 
-//         ++pre_order_it;
-//         REQUIRE(pre_order_it != tree.end_pre_order());
-//         REQUIRE((*pre_order_it).get_value() == 1.5);
+    SUBCASE("DFS traversal") {
+        auto child1 = std::make_shared<ariel::Node<Complex>>(Complex(2, 2));
+        auto child2 = std::make_shared<ariel::Node<Complex>>(Complex(3, 3));
+        auto grandchild = std::make_shared<ariel::Node<Complex>>(Complex(4, 4));
+        tree->add_sub_node(root, child1);
+        tree->add_sub_node(root, child2);
+        tree->add_sub_node(child1, grandchild);
 
-//         ++pre_order_it;
-//         REQUIRE(pre_order_it != tree.end_pre_order());
-//         REQUIRE((*pre_order_it).get_value() == 1.3);
+        std::vector<Complex> expected = {Complex(1, 1), Complex(2, 2), Complex(4, 4), Complex(3, 3)};
+        auto it = tree->begin_dfs();
+        for (const auto& val : expected) {
+            REQUIRE(it != tree->end_dfs());
+            REQUIRE(it->get_value() == val);
+            ++it;
+        }
+        REQUIRE(it == tree->end_dfs());
+    }
+}
 
-//         ++pre_order_it;
-//         REQUIRE(pre_order_it != tree.end_pre_order());
-//         REQUIRE((*pre_order_it).get_value() == 1.6);
+TEST_CASE("TreeVisualizer draw test") {
+    // Since we cannot visually test the GUI rendering in an automated test,
+    // we will simply ensure the TreeVisualizer can be created and called without crashing.
 
-//         ++pre_order_it;
-//         REQUIRE(pre_order_it == tree.end_pre_order());
-//     }
-// }
+    auto tree = std::make_shared<ariel::Tree<Complex, 2>>();
+    auto root = std::make_shared<ariel::Node<Complex>>(Complex(1, 1));
+    tree->add_root(root);
+    tree->add_sub_node(root, std::make_shared<ariel::Node<Complex>>(Complex(2, 2)));
+    tree->add_sub_node(root, std::make_shared<ariel::Node<Complex>>(Complex(3, 3)));
+
+    ariel::TreeVisualizer<Complex, 2> visualizer(*tree);
+    sf::RenderWindow window(sf::VideoMode(800, 600), "TreeVisualizer Test");
+
+    CHECK_NOTHROW(visualizer.draw(window));
+}

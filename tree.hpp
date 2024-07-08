@@ -93,13 +93,21 @@ private:
     std::stack<NodePtr> nodes;
     NodePtr last_visited = nullptr;
 
+    void push_left(NodePtr node) {
+        while (node) {
+            nodes.push(node);
+            if (!node->get_children().empty()) {
+                node = node->get_children().front();
+            } else {
+                break;
+            }
+        }
+    }
+
 public:
     PostOrderIterator(NodePtr root) {
         if (root) {
-            nodes.push(root);
-            while (!nodes.top()->get_children().empty()) {
-                nodes.push(nodes.top()->get_children().front());
-            }
+            push_left(root);
         }
     }
 
@@ -113,29 +121,18 @@ public:
 
     PostOrderIterator& operator++() {
         if (!nodes.empty()) {
-            last_visited = nodes.top();
+            NodePtr top = nodes.top();
             nodes.pop();
-
-            while (!nodes.empty() && last_visited == nodes.top()->get_children().back()) {
-                last_visited = nodes.top();
-                nodes.pop();
-            }
 
             if (!nodes.empty() && !nodes.top()->get_children().empty()) {
                 auto& siblings = nodes.top()->get_children();
-                for (auto it = siblings.rbegin(); it != siblings.rend(); ++it) {
-                    if (*it == last_visited) {
-                        if (++it != siblings.rend()) {
-                            auto next_sibling = *it;
-                            while (next_sibling && !next_sibling->get_children().empty()) {
-                                next_sibling = next_sibling->get_children().front();
-                            }
-                            nodes.push(next_sibling);
-                            break;
-                        }
-                    }
+                auto it = std::find(siblings.begin(), siblings.end(), top);
+                if (it != siblings.end() && ++it != siblings.end()) {
+                    push_left(*it);
                 }
             }
+
+            last_visited = top;
         }
         return *this;
     }
@@ -143,6 +140,7 @@ public:
     Node<T>& operator*() { return *nodes.top(); }
     Node<T>* operator->() { return nodes.top().get(); }
 };
+
 
 // InOrderIterator class
 template <typename T, size_t K>
@@ -353,7 +351,16 @@ private:
         text.setFont(font);
         text.setCharacterSize(14);
         text.setFillColor(sf::Color::White);
-        text.setString(node->get_value().to_string());
+
+        // Convert node value to string
+        std::string valueString;
+        if constexpr (std::is_same_v<T, Complex>) {
+            valueString = node->get_value().to_string();
+        } else {
+            valueString = std::to_string(node->get_value());
+        }
+        
+        text.setString(valueString);
         text.setPosition(x - circle.getRadius() + 10, y - circle.getRadius() + 10);
         window.draw(text);
 
