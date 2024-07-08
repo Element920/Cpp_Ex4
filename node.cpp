@@ -1,3 +1,6 @@
+// israelmor555@gmail.com
+// 206508954
+
 // node.hpp
 #ifndef NODE_HPP
 #define NODE_HPP

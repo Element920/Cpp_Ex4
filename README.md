@@ -33,3 +33,25 @@
 
 בהצלחה!
    
+# Tree Project
+
+## Overview
+This project implements a generic k-ary tree container in C++. The tree supports various traversal methods including Pre-Order, Post-Order, In-Order (for binary trees), BFS, and DFS. Additionally, it includes a method to convert a binary tree into a min-heap.
+
+## Structure
+- `node`: Template class representing a node in the tree.
+- `tree`: Template class representing the tree, containing methods to add nodes and traverse the tree.
+- `Complex`: Class representing complex numbers, used for demonstration.
+- `Demo.cpp`: Main file demonstrating the usage of the tree.
+- `tree.hpp`: Implementation of the Tree class.
+- `Makefile`: File to build the project.
+
+## Dependencies
+- SFML for GUI representation.
+
+## Building and Running
+To build and run the project, use the following commands:
+
+```bash
+make
+./bin/demo
